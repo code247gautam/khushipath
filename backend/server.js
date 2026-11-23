@@ -107,11 +107,15 @@ const globalApiLimiter = rateLimit({
 });
 app.use("/api", globalApiLimiter);
 
-// ── Body parsers (size-capped to prevent DoS via large payloads) ──────────────
+// ── Static frontend & uploads (before session/CSRF — no auth needed) ─────────
+app.use(express.static(path.join(__dirname, "../frontend")));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads"), { index: false }));
+
+// ── Body parsers ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: false, limit: "2mb" }));
 
-// ── Session ───────────────────────────────────────────────────────────────────
+// ── Session (API routes only) ─────────────────────────────────────────────────
 const sessionStore = new pgSession({
   pool:                 pgPool,
   tableName:            "sessions",
@@ -123,7 +127,7 @@ sessionStore.on("error", (err) => {
   console.error("[session-store] error:", err.message);
 });
 
-app.use(
+app.use("/api",
   session({
     store: sessionStore,
     secret:            process.env.SESSION_SECRET || "dev_secret_CHANGE_ME_NOW",
@@ -138,12 +142,6 @@ app.use(
     },
   })
 );
-
-// ── Static frontend (served before CSRF — no token needed for HTML/CSS/JS) ───
-app.use(express.static(path.join(__dirname, "../frontend")));
-
-// ── Static uploads (signatures, logos) ───────────────────────────────────────
-app.use("/uploads", express.static(path.join(__dirname, "../uploads"), { index: false }));
 
 // ── CSRF protection (API routes only) ────────────────────────────────────────
 const csrfProtection = csrf({ cookie: false });
