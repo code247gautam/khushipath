@@ -112,7 +112,7 @@ app.use("/api", globalApiLimiter);
 
 // ── Static frontend & uploads (before session/CSRF — no auth needed) ─────────
 app.use(express.static(path.join(ROOT, "frontend")));
-app.use("/uploads", express.static(path.join(ROOT, "uploads"), { index: false }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads"), { index: false }));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: "2mb" }));

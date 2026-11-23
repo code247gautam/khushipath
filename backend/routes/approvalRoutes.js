@@ -28,7 +28,8 @@ const router = express.Router();
 router.use(requireAuth, requireBranch);
 
 // ── Signature upload storage ──────────────────────────────────────────────────
-const SIG_DIR = path.join(__dirname, "../../uploads/signatures");
+// Use /app/uploads (writable) — __dirname is /app/routes, go up to /app then into uploads
+const SIG_DIR = path.join(__dirname, "../uploads/signatures");
 if (!fs.existsSync(SIG_DIR)) fs.mkdirSync(SIG_DIR, { recursive: true });
 
 const sigStorage = multer.diskStorage({
