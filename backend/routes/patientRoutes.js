@@ -108,8 +108,13 @@ router.post(
       return res.status(400).json({ error: "gender must be M, F or O." });
     }
 
-    // Branch is always the user's branch (or supplied branch_id for admin)
-    const branch_id = req.branchFilter ?? Number(req.body.branch_id);
+    // Branch: use user's own branch, or body-supplied branch_id for admin,
+    // or fall back to the first available branch (super-admin with no fixed branch)
+    let branch_id = req.branchFilter ?? Number(req.body.branch_id) || null;
+    if (!branch_id) {
+      const firstBranch = await db("branches").orderBy("id").first();
+      branch_id = firstBranch?.id ?? null;
+    }
     if (!branch_id) return res.status(400).json({ error: "branch_id is required." });
 
     const patient_uid = await nextPatientUid();
