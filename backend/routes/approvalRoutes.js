@@ -17,6 +17,7 @@
 const express      = require("express");
 const path         = require("path");
 const fs           = require("fs");
+const os           = require("os");
 const multer       = require("multer");
 const db           = require("../db");
 const asyncHandler  = require("../utils/asyncHandler");
@@ -28,8 +29,8 @@ const router = express.Router();
 router.use(requireAuth, requireBranch);
 
 // ── Signature upload storage ──────────────────────────────────────────────────
-// Use /app/uploads (writable) — __dirname is /app/routes, go up to /app then into uploads
-const SIG_DIR = path.join(__dirname, "../uploads/signatures");
+// Use /tmp which is always writable in any container environment
+const SIG_DIR = process.env.SIG_DIR || path.join(os.tmpdir(), "pathlab", "signatures");
 if (!fs.existsSync(SIG_DIR)) fs.mkdirSync(SIG_DIR, { recursive: true });
 
 const sigStorage = multer.diskStorage({

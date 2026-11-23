@@ -24,6 +24,7 @@ const session      = require("express-session");
 const pgSession    = require("connect-pg-simple")(session);
 const csrf         = require("csurf");
 const path         = require("path");
+const os           = require("os");
 const { Pool }     = require("pg");
 
 const authRoutes     = require("./routes/authRoutes");
@@ -112,7 +113,7 @@ app.use("/api", globalApiLimiter);
 
 // ── Static frontend & uploads (before session/CSRF — no auth needed) ─────────
 app.use(express.static(path.join(ROOT, "frontend")));
-app.use("/uploads", express.static(path.join(__dirname, "uploads"), { index: false }));
+app.use("/uploads", express.static(path.join(os.tmpdir(), "pathlab"), { index: false }));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: "2mb" }));
