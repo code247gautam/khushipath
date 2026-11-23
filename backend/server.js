@@ -55,9 +55,10 @@ app.set("trust proxy", process.env.TRUST_PROXY === "false" ? 0 : 1);
 const pgPool = new Pool({
   host:     process.env.DB_HOST     || "localhost",
   port:     Number(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME     || "pathlab",
-  user:     process.env.DB_USER     || "pathlab",
+  database: process.env.DB_NAME     || "neondb",
+  user:     process.env.DB_USER     || "neondb_owner",
   password: process.env.DB_PASS,
+  ssl:      process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
 // ── Security headers (helmet) ─────────────────────────────────────────────────
