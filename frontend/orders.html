@@ -1,0 +1,173 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PathLab — Orders</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .lucide { width: 16px; height: 16px; vertical-align: -2px; }
+    body{background:#f0f4f8}
+    .sidebar{width:220px;min-height:100vh;background:#1e293b;color:#cbd5e1;position:fixed;top:0;left:0;display:flex;flex-direction:column}
+    .sidebar .brand{padding:.6rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid #334155}
+    .sidebar .brand img{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0}
+    .sidebar .brand span{font-size:1rem;font-weight:700;color:#fff;line-height:1.2}
+    .sidebar nav a{display:block;padding:.55rem 1rem;color:#94a3b8;text-decoration:none;font-size:.9rem}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#334155;color:#fff}
+    .main-content{margin-left:220px;padding:2rem}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+    .badge-collected{background:#6c757d}
+    .badge-received{background:#0dcaf0;color:#000}
+    .badge-in_process{background:#ffc107;color:#000}
+    .badge-reported{background:#0d6efd}
+    .badge-delivered{background:#198754}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">
+    <img src="assets/logo.png" alt="Khushi Pathological Lab logo" />
+    <span>Khushi<br>Path Lab</span>
+  </div>
+  <nav class="mt-2">
+    <a href="/dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <a href="/patients.html"><i data-lucide="users"></i> Patients</a>
+    <a href="/orders.html" class="active"><i data-lucide="clipboard-list"></i> Orders</a>
+    <a href="/results.html"><i data-lucide="microscope"></i> Results</a>
+    <a href="/tests.html"><i data-lucide="flask-conical"></i> Test Catalog</a>
+    <a href="/packages.html"><i data-lucide="package"></i> Packages</a>
+    <a href="/import.html"><i data-lucide="upload"></i> Import</a>
+    <a href="/branches.html"><i data-lucide="building-2"></i> Branches</a>
+    <a href="/users.html"><i data-lucide="user"></i> Users</a>
+  </nav>
+</aside>
+
+<div class="main-content">
+  <div class="topbar">
+    <h4 class="mb-0">Orders</h4>
+    <div class="d-flex gap-2">
+      <input type="search" id="searchInput" class="form-control form-control-sm" placeholder="Order No / Patient…" style="width:220px" />
+      <select id="statusFilter" class="form-select form-select-sm" style="width:150px">
+        <option value="">All statuses</option>
+        <option>collected</option><option>received</option>
+        <option>in_process</option><option>reported</option><option>delivered</option>
+      </select>
+      <button class="btn btn-primary btn-sm" id="addOrderBtn" data-bs-toggle="modal" data-bs-target="#orderModal">+ New Order</button>
+      <button class="btn btn-sm btn-outline-danger" id="logoutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div id="alertBox" class="alert d-none mb-3"></div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-hover mb-0 small">
+        <thead class="table-light">
+          <tr><th>Order No.</th><th>Patient</th><th>Phone</th><th>Tests</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="orderTbody">
+          <tr><td colspan="7" class="text-center text-muted py-4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- New Order Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New Order</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modalAlert" class="alert d-none"></div>
+
+        <!-- Step 1: Patient search -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Patient *</label>
+          <div class="input-group">
+            <input type="text" id="patientSearch" class="form-control" placeholder="Search by name, ID or phone…" />
+            <button class="btn btn-outline-secondary" id="patientSearchBtn">Search</button>
+          </div>
+          <div id="patientResults" class="list-group mt-1" style="max-height:160px;overflow-y:auto"></div>
+          <div id="selectedPatient" class="alert alert-info py-2 mt-2 d-none small"></div>
+          <input type="hidden" id="selectedPatientId" />
+        </div>
+
+        <!-- Step 2: Select tests -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Tests / Packages *</label>
+          <div class="d-flex gap-2 mb-2">
+            <select id="testSelect" class="form-select form-select-sm" style="max-width:280px">
+              <option value="">— add individual test —</option>
+            </select>
+            <button class="btn btn-sm btn-outline-primary" id="addTestToOrderBtn">Add Test</button>
+          </div>
+          <div class="d-flex gap-2 mb-2">
+            <select id="pkgSelect" class="form-select form-select-sm" style="max-width:280px">
+              <option value="">— add package —</option>
+            </select>
+            <button class="btn btn-sm btn-outline-primary" id="addPkgToOrderBtn">Add Package</button>
+          </div>
+          <ul id="selectedTestsList" class="list-group list-group-flush small"></ul>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">Referring Doctor (override)</label>
+            <input type="text" id="oDoctor" class="form-control form-control-sm" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Clinical Notes</label>
+            <input type="text" id="oClinical" class="form-control form-control-sm" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveOrderBtn">Create Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Detail / Status Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailTitle">Order Detail</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="detailInfo" class="mb-3 small text-muted"></div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Sample Status</label>
+          <select id="statusSelect" class="form-select form-select-sm" style="max-width:200px">
+            <option>collected</option><option>received</option>
+            <option>in_process</option><option>reported</option><option>delivered</option>
+          </select>
+          <button class="btn btn-sm btn-primary mt-2" id="updateStatusBtn">Update Status</button>
+        </div>
+        <table class="table table-sm table-bordered small">
+          <thead class="table-light"><tr><th>Code</th><th>Test</th><th>Price</th><th>Result</th><th>Flag</th></tr></thead>
+          <tbody id="detailItemsTbody"></tbody>
+        </table>
+        <a id="goToResultsBtn" href="#" class="btn btn-sm btn-outline-primary">Enter Results →</a>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/orders.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

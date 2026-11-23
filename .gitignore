@@ -1,0 +1,13 @@
+# Dependencies
+backend/node_modules/
+
+# Environment secrets — NEVER commit this
+.env
+
+# Uploaded files (signatures, logos per branch)
+uploads/
+
+# Editor / OS
+.bob/
+.DS_Store
+Thumbs.db

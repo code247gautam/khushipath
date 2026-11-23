@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PathLab — Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body { background: #f0f4f8; }
+    .sidebar {
+      width: 220px; min-height: 100vh;
+      background: #1e293b; color: #cbd5e1;
+      position: fixed; top: 0; left: 0;
+      display: flex; flex-direction: column;
+    }
+    .sidebar nav a { display: block; padding: .55rem 1rem; color: #94a3b8; text-decoration: none; font-size: .9rem; }
+    .sidebar nav a:hover, .sidebar nav a.active { background: #334155; color: #fff; }
+    .sidebar .role-badge { margin: auto 1rem 1rem; font-size: .75rem; color: #64748b; }
+    .main-content { margin-left: 220px; padding: 2rem; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    [data-role-only] { display: none !important; }
+
+    /* KPI tiles */
+    .kpi-card { border-radius: 10px; padding: 1.2rem 1rem; background: #fff;
+                box-shadow: 0 1px 6px rgba(0,0,0,.07); }
+    .kpi-card .kpi-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .kpi-card .kpi-label { font-size: .78rem; color: #64748b; margin-top: .3rem; }
+    .kpi-blue   { border-left: 4px solid #3b82f6; }
+    .kpi-green  { border-left: 4px solid #22c55e; }
+    .kpi-orange { border-left: 4px solid #f59e0b; }
+    .kpi-red    { border-left: 4px solid #ef4444; }
+    .kpi-purple { border-left: 4px solid #8b5cf6; }
+    .kpi-teal   { border-left: 4px solid #14b8a6; }
+
+    /* Bar chart bars */
+    .bar-wrap { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+    .bar { background: #3b82f6; border-radius: 3px 3px 0 0; min-width: 20px; }
+    .bar-label { font-size: .7rem; text-align: center; color: #64748b; }
+
+    .lucide { width: 16px; height: 16px; vertical-align: -2px; }
+    .sidebar .brand { padding: .6rem 1rem; display: flex; align-items: center; gap: .5rem; border-bottom: 1px solid #334155; }
+    .sidebar .brand img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .sidebar .brand span { font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.2; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <img src="assets/logo.png" alt="Khushi Pathological Lab logo" />
+    <span>Khushi<br>Path Lab</span>
+  </div>
+  <nav class="mt-2" id="sideNav">
+    <a href="/dashboard.html" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <a href="/patients.html"><i data-lucide="users"></i> Patients</a>
+    <a href="/orders.html"><i data-lucide="clipboard-list"></i> Orders</a>
+    <a href="/results.html"  data-role-only="admin,branch_manager,technician"><i data-lucide="microscope"></i> Results</a>
+    <a href="/approval.html" data-role-only="admin,branch_manager,pathologist"><i data-lucide="check-circle"></i> Approval</a>
+    <a href="/reports.html"><i data-lucide="file-text"></i> Reports</a>
+    <a href="/eod-summary.html"><i data-lucide="bar-chart-2"></i> EOD Summary</a>
+    <a href="/billing.html"   data-role-only="admin,branch_manager,accountant,receptionist"><i data-lucide="banknote"></i> Billing</a>
+    <a href="/inventory.html" data-role-only="admin,branch_manager"><i data-lucide="package"></i> Inventory</a>
+    <a href="/audit.html"      data-role-only="admin"><i data-lucide="search"></i> Audit Log</a>
+    <a href="/retention.html"  data-role-only="admin"><i data-lucide="archive"></i> Retention</a>
+    <a href="/branches.html" data-role-only="admin"><i data-lucide="building-2"></i> Branches</a>
+    <a href="/users.html"    data-role-only="admin,branch_manager"><i data-lucide="user"></i> Users</a>
+    <a href="/tests.html"    data-role-only="admin,branch_manager"><i data-lucide="flask-conical"></i> Test Catalog</a>
+    <a href="/packages.html" data-role-only="admin,branch_manager"><i data-lucide="package"></i> Packages</a>
+    <a href="/import.html"   data-role-only="admin,branch_manager"><i data-lucide="upload"></i> Import</a>
+  </nav>
+  <div class="role-badge" id="roleLabel"></div>
+</aside>
+
+<div class="main-content">
+  <div class="topbar">
+    <div>
+      <h4 class="mb-0">Dashboard</h4>
+      <div class="text-muted small" id="dateLabel"></div>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="text-muted small" id="userGreeting"></span>
+      <button class="btn btn-sm btn-outline-secondary" id="refreshBtn">↻</button>
+      <button class="btn btn-sm btn-outline-danger" id="logoutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <!-- KPI tiles -->
+  <div class="row g-3 mb-4" id="kpiRow">
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-value" id="kpi-patients">—</div>
+        <div class="kpi-label">Patients Today</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card kpi-teal">
+        <div class="kpi-value" id="kpi-orders">—</div>
+        <div class="kpi-label">Orders Today</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card kpi-orange">
+        <div class="kpi-value" id="kpi-pending">—</div>
+        <div class="kpi-label">Pending Approval</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card kpi-green">
+        <div class="kpi-value" id="kpi-approved">—</div>
+        <div class="kpi-label">Reports Approved</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card kpi-red">
+        <div class="kpi-value" id="kpi-delayed">—</div>
+        <div class="kpi-label">Delayed Orders</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-value" id="kpi-revenue">—</div>
+        <div class="kpi-label">Revenue Today (₹)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Top tests mini-chart -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header fw-semibold small"><i data-lucide="trophy"></i> Top Tests (last 7 days)</div>
+        <div class="card-body">
+          <div id="topTestsChart" class="bar-wrap flex-wrap align-items-end" style="height:auto;gap:0;flex-direction:column"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delayed orders -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header fw-semibold small text-danger"><i data-lucide="clock"></i> Delayed Orders</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0 small">
+            <thead class="table-light"><tr><th>Order</th><th>Patient</th><th>Status</th><th>Hours</th></tr></thead>
+            <tbody id="delayedTbody">
+              <tr><td colspan="4" class="text-muted text-center py-3">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/dashboard.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

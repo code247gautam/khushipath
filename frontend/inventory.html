@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PathLab — Inventory</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .lucide { width: 16px; height: 16px; vertical-align: -2px; }
+    body{background:#f0f4f8}
+    .sidebar{width:220px;min-height:100vh;background:#1e293b;color:#cbd5e1;position:fixed;top:0;left:0;display:flex;flex-direction:column}
+    .sidebar .brand{padding:.6rem 1rem .6rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid #334155}
+    .sidebar .brand img{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0}
+    .sidebar .brand span{font-size:1rem;font-weight:700;color:#fff;line-height:1.2}
+    .sidebar nav a{display:block;padding:.55rem 1rem;color:#94a3b8;text-decoration:none;font-size:.9rem}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#334155;color:#fff}
+    .main-content{margin-left:220px;padding:2rem}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+    .alert-low{background:#fef2f2;border-left:4px solid #ef4444}
+    .alert-expiry{background:#fffbeb;border-left:4px solid #f59e0b}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">
+    <img src="assets/logo.png" alt="Khushi Pathological Lab logo" />
+    <span>Khushi<br>Path Lab</span>
+  </div>
+  <nav class="mt-2">
+    <a href="/dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <a href="/patients.html"><i data-lucide="users"></i> Patients</a>
+    <a href="/orders.html"><i data-lucide="clipboard-list"></i> Orders</a>
+    <a href="/results.html"><i data-lucide="microscope"></i> Results</a>
+    <a href="/approval.html"><i data-lucide="check-circle"></i> Approval</a>
+    <a href="/reports.html"><i data-lucide="file-text"></i> Reports</a>
+    <a href="/eod-summary.html"><i data-lucide="bar-chart-2"></i> EOD Summary</a>
+    <a href="/inventory.html" class="active"><i data-lucide="package"></i> Inventory</a>
+    <a href="/audit.html"><i data-lucide="search"></i> Audit Log</a>
+    <a href="/retention.html"><i data-lucide="archive"></i> Retention</a>
+    <a href="/branches.html"><i data-lucide="building-2"></i> Branches</a>
+    <a href="/users.html"><i data-lucide="user"></i> Users</a>
+    <a href="/tests.html"><i data-lucide="flask-conical"></i> Test Catalog</a>
+  </nav>
+</aside>
+
+<div class="main-content">
+  <div class="topbar">
+    <h4 class="mb-0">Inventory</h4>
+    <button class="btn btn-sm btn-outline-danger" id="logoutBtn">Sign out</button>
+  </div>
+
+  <!-- Alert badges row -->
+  <div class="row g-2 mb-3" id="alertBadges"></div>
+
+  <div id="globalAlert" class="alert d-none mb-3"></div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="invTabs">
+    <li class="nav-item"><button class="nav-link active" data-tab="stock">Stock</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="items">Item Master</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="batches">Batches</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="movements">Movements</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="alerts">Alerts</button></li>
+  </ul>
+
+  <!-- ── STOCK TAB ── -->
+  <div id="tab-stock">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <input type="search" id="stockSearch" class="form-control form-control-sm" placeholder="Search item…" style="max-width:220px" />
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#purchaseModal">+ Purchase</button>
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#transferModal">⇄ Transfer</button>
+        <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#adjustModal">± Adjust</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body p-0">
+        <table class="table table-hover table-sm mb-0 small">
+          <thead class="table-light">
+            <tr><th>Code</th><th>Name</th><th>Type</th><th>Unit</th><th>Stock</th><th>Reorder Level</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="stockTbody"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ITEMS TAB ── -->
+  <div id="tab-items" style="display:none">
+    <div class="d-flex justify-content-end mb-2">
+      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#itemModal" id="addItemBtn">+ New Item</button>
+    </div>
+    <div class="card">
+      <div class="card-body p-0">
+        <table class="table table-hover table-sm mb-0 small">
+          <thead class="table-light">
+            <tr><th>Code</th><th>Name</th><th>Type</th><th>Unit</th><th>Supplier</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="itemTbody"><tr><td colspan="6" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BATCHES TAB ── -->
+  <div id="tab-batches" style="display:none">
+    <div class="card">
+      <div class="card-body p-0">
+        <table class="table table-hover table-sm mb-0 small">
+          <thead class="table-light">
+            <tr><th>Item</th><th>Batch No.</th><th>Qty</th><th>Expiry</th><th>Branch</th></tr>
+          </thead>
+          <tbody id="batchTbody"><tr><td colspan="5" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MOVEMENTS TAB ── -->
+  <div id="tab-movements" style="display:none">
+    <div class="d-flex gap-2 mb-2">
+      <select id="movTypeFilter" class="form-select form-select-sm" style="max-width:160px">
+        <option value="">All types</option>
+        <option>purchase</option><option>transfer_in</option>
+        <option>transfer_out</option><option>adjustment</option><option>usage</option>
+      </select>
+      <input type="date" id="movDateFrom" class="form-control form-control-sm" style="max-width:150px" />
+      <input type="date" id="movDateTo"   class="form-control form-control-sm" style="max-width:150px" />
+      <button class="btn btn-sm btn-primary" id="movSearchBtn">Filter</button>
+    </div>
+    <div class="card">
+      <div class="card-body p-0">
+        <table class="table table-hover table-sm mb-0 small">
+          <thead class="table-light">
+            <tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Branch</th><th>By</th><th>Notes</th></tr>
+          </thead>
+          <tbody id="movTbody"><tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ALERTS TAB ── -->
+  <div id="tab-alerts" style="display:none">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header fw-semibold small text-danger"><i data-lucide="alert-circle"></i> Low Stock</div>
+          <div class="card-body p-0">
+            <table class="table table-sm mb-0 small">
+              <thead class="table-light"><tr><th>Item</th><th>Branch</th><th>Stock</th><th>Reorder</th><th>Short by</th></tr></thead>
+              <tbody id="lowStockTbody"><tr><td colspan="5" class="text-muted text-center py-2">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header fw-semibold small text-warning"><i data-lucide="clock"></i> Expiring Soon (30 days)</div>
+          <div class="card-body p-0">
+            <table class="table table-sm mb-0 small">
+              <thead class="table-light"><tr><th>Item</th><th>Batch</th><th>Expiry</th><th>Qty</th><th>Days Left</th></tr></thead>
+              <tbody id="expiringTbody"><tr><td colspan="5" class="text-muted text-center py-2">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- New / Edit Item -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="itemModalTitle">New Item</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="itemModalAlert" class="alert d-none"></div>
+        <input type="hidden" id="itemId" />
+        <div class="row g-2">
+          <div class="col-4"><label class="form-label small">Code *</label><input type="text" id="iCode" class="form-control form-control-sm" /></div>
+          <div class="col-8"><label class="form-label small">Name *</label><input type="text" id="iName" class="form-control form-control-sm" /></div>
+          <div class="col-6">
+            <label class="form-label small">Type</label>
+            <select id="iType" class="form-select form-select-sm">
+              <option value="reagent">Reagent</option><option value="kit">Kit</option>
+              <option value="consumable">Consumable</option><option value="other">Other</option>
+            </select>
+          </div>
+          <div class="col-3"><label class="form-label small">Unit</label><input type="text" id="iUnit" class="form-control form-control-sm" placeholder="mL" /></div>
+          <div class="col-12"><label class="form-label small">Supplier</label><input type="text" id="iSupplier" class="form-control form-control-sm" /></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea id="iDesc" class="form-control form-control-sm" rows="2"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="saveItemBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Purchase -->
+<div class="modal fade" id="purchaseModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Receive Purchase</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="purchaseAlert" class="alert d-none"></div>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label small">Item *</label>
+            <select id="purchaseItem" class="form-select form-select-sm"><option value="">— select —</option></select>
+          </div>
+          <div class="col-6"><label class="form-label small">Quantity *</label><input type="number" id="purchaseQty" class="form-control form-control-sm" min="0.001" step="any" /></div>
+          <div class="col-6"><label class="form-label small">Batch No.</label><input type="text" id="purchaseBatch" class="form-control form-control-sm" /></div>
+          <div class="col-6"><label class="form-label small">Expiry Date</label><input type="date" id="purchaseExpiry" class="form-control form-control-sm" /></div>
+          <div class="col-12"><label class="form-label small">Notes</label><input type="text" id="purchaseNotes" class="form-control form-control-sm" /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" id="savePurchaseBtn">Receive</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transfer -->
+<div class="modal fade" id="transferModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Transfer Stock</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="transferAlert" class="alert d-none"></div>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label small">Item *</label>
+            <select id="transferItem" class="form-select form-select-sm"><option value="">— select —</option></select>
+          </div>
+          <div class="col-6">
+            <label class="form-label small">From Branch *</label>
+            <select id="transferFrom" class="form-select form-select-sm"><option value="">— select —</option></select>
+          </div>
+          <div class="col-6">
+            <label class="form-label small">To Branch *</label>
+            <select id="transferTo" class="form-select form-select-sm"><option value="">— select —</option></select>
+          </div>
+          <div class="col-6"><label class="form-label small">Quantity *</label><input type="number" id="transferQty" class="form-control form-control-sm" min="0.001" step="any" /></div>
+          <div class="col-12"><label class="form-label small">Notes</label><input type="text" id="transferNotes" class="form-control form-control-sm" /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="saveTransferBtn">Transfer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Adjustment -->
+<div class="modal fade" id="adjustModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Manual Adjustment</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="adjustAlert" class="alert d-none"></div>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label small">Item *</label>
+            <select id="adjustItem" class="form-select form-select-sm"><option value="">— select —</option></select>
+          </div>
+          <div class="col-6"><label class="form-label small">Quantity (± use negative to reduce) *</label><input type="number" id="adjustQty" class="form-control form-control-sm" step="any" /></div>
+          <div class="col-12"><label class="form-label small">Reason / Notes *</label><input type="text" id="adjustNotes" class="form-control form-control-sm" /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-warning" id="saveAdjustBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/inventory.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

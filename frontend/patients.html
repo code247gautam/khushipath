@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PathLab — Patients</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .lucide { width: 16px; height: 16px; vertical-align: -2px; }
+    body{background:#f0f4f8}
+    .sidebar{width:220px;min-height:100vh;background:#1e293b;color:#cbd5e1;position:fixed;top:0;left:0;display:flex;flex-direction:column}
+    .sidebar .brand{padding:.6rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid #334155}
+    .sidebar .brand img{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0}
+    .sidebar .brand span{font-size:1rem;font-weight:700;color:#fff;line-height:1.2}
+    .sidebar nav a{display:block;padding:.55rem 1rem;color:#94a3b8;text-decoration:none;font-size:.9rem}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#334155;color:#fff}
+    .main-content{margin-left:220px;padding:2rem}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">
+    <img src="assets/logo.png" alt="Khushi Pathological Lab logo" />
+    <span>Khushi<br>Path Lab</span>
+  </div>
+  <nav class="mt-2">
+    <a href="/dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <a href="/patients.html" class="active"><i data-lucide="users"></i> Patients</a>
+    <a href="/orders.html"><i data-lucide="clipboard-list"></i> Orders</a>
+    <a href="/results.html"><i data-lucide="microscope"></i> Results</a>
+    <a href="/tests.html"><i data-lucide="flask-conical"></i> Test Catalog</a>
+    <a href="/packages.html"><i data-lucide="package"></i> Packages</a>
+    <a href="/import.html"><i data-lucide="upload"></i> Import</a>
+    <a href="/branches.html"><i data-lucide="building-2"></i> Branches</a>
+    <a href="/users.html"><i data-lucide="user"></i> Users</a>
+  </nav>
+</aside>
+
+<div class="main-content">
+  <div class="topbar">
+    <h4 class="mb-0">Patients</h4>
+    <div class="d-flex gap-2">
+      <input type="search" id="searchInput" class="form-control form-control-sm" placeholder="Name / ID / Phone…" style="width:230px" />
+      <button class="btn btn-primary btn-sm" id="addPatientBtn" data-bs-toggle="modal" data-bs-target="#patientModal">+ Register</button>
+      <button class="btn btn-sm btn-outline-danger" id="logoutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div id="alertBox" class="alert d-none mb-3"></div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-hover mb-0 small">
+        <thead class="table-light">
+          <tr><th>Patient ID</th><th>Name</th><th>Gender</th><th>Phone</th><th>Referring Dr.</th><th>Registered</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="patientTbody">
+          <tr><td colspan="7" class="text-center text-muted py-4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Patient modal -->
+<div class="modal fade" id="patientModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="patientModalTitle">Register Patient</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modalAlert" class="alert d-none"></div>
+        <input type="hidden" id="patientId" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="pName" class="form-control" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Gender *</label>
+            <select id="pGender" class="form-select">
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+              <option value="O">Other</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Date of Birth</label>
+            <input type="date" id="pDOB" class="form-control" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Age (years)</label>
+            <input type="number" id="pAge" class="form-control" min="0" placeholder="If DOB unknown" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Phone *</label>
+            <input type="tel" id="pPhone" class="form-control" required />
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Email</label>
+            <input type="email" id="pEmail" class="form-control" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Address</label>
+            <textarea id="pAddress" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Referring Doctor</label>
+            <input type="text" id="pDoctor" class="form-control" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Notes</label>
+            <input type="text" id="pNotes" class="form-control" />
+          </div>
+        </div>
+
+        <!-- Order history (shown when editing) -->
+        <div id="orderHistorySection" class="d-none mt-4">
+          <h6 class="fw-semibold">Order History</h6>
+          <table class="table table-sm table-bordered small">
+            <thead class="table-light"><tr><th>Order No.</th><th>Status</th><th>Date</th><th></th></tr></thead>
+            <tbody id="orderHistoryTbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" id="newOrderBtn" style="display:none">+ New Order</button>
+        <button type="button" class="btn btn-primary" id="savePatientBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/patients.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

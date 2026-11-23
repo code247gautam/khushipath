@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PathLab — Result Entry</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .lucide { width: 16px; height: 16px; vertical-align: -2px; }
+    body{background:#f0f4f8}
+    .sidebar{width:220px;min-height:100vh;background:#1e293b;color:#cbd5e1;position:fixed;top:0;left:0;display:flex;flex-direction:column}
+    .sidebar .brand{padding:.6rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid #334155}
+    .sidebar .brand img{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0}
+    .sidebar .brand span{font-size:1rem;font-weight:700;color:#fff;line-height:1.2}
+    .sidebar nav a{display:block;padding:.55rem 1rem;color:#94a3b8;text-decoration:none;font-size:.9rem}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#334155;color:#fff}
+    .main-content{margin-left:220px;padding:2rem}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+    .flag-N{color:#198754;font-weight:600}
+    .flag-H{color:#dc3545;font-weight:600}
+    .flag-L{color:#0d6efd;font-weight:600}
+    .flag-C{color:#dc3545;font-weight:800;animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .result-row td{vertical-align:middle}
+    .value-input{width:120px}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">
+    <img src="assets/logo.png" alt="Khushi Pathological Lab logo" />
+    <span>Khushi<br>Path Lab</span>
+  </div>
+  <nav class="mt-2">
+    <a href="/dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <a href="/patients.html"><i data-lucide="users"></i> Patients</a>
+    <a href="/orders.html"><i data-lucide="clipboard-list"></i> Orders</a>
+    <a href="/results.html" class="active"><i data-lucide="microscope"></i> Results</a>
+    <a href="/tests.html"><i data-lucide="flask-conical"></i> Test Catalog</a>
+    <a href="/packages.html"><i data-lucide="package"></i> Packages</a>
+    <a href="/import.html"><i data-lucide="upload"></i> Import</a>
+    <a href="/branches.html"><i data-lucide="building-2"></i> Branches</a>
+    <a href="/users.html"><i data-lucide="user"></i> Users</a>
+  </nav>
+</aside>
+
+<div class="main-content">
+  <div class="topbar">
+    <h4 class="mb-0">Result Entry</h4>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-danger" id="logoutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Order selector -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label small fw-semibold">Search Order</label>
+          <input type="search" id="orderSearch" class="form-control form-control-sm" placeholder="Order No / Patient name / ID…" />
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-primary btn-sm" id="searchOrderBtn">Load</button>
+        </div>
+        <div class="col-auto">
+          <!-- URL param pre-fill: results.html?order_id=42 -->
+          <span id="orderLabel" class="text-muted small"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="alertBox" class="alert d-none mb-3"></div>
+
+  <!-- Results table (hidden until an order is loaded) -->
+  <div id="resultsCard" class="card d-none">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span id="orderInfo" class="fw-semibold"></span>
+      <span id="patientInfo" class="text-muted small"></span>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-hover mb-0 small">
+        <thead class="table-light">
+          <tr>
+            <th>Code</th><th>Test</th><th>Unit</th>
+            <th>Value</th><th>Flag</th><th>Notes</th>
+            <th>Status</th><th>Save</th>
+          </tr>
+        </thead>
+        <tbody id="resultsTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/results.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

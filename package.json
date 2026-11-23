@@ -1,0 +1,14 @@
+{
+  "name": "khushi-pathlab",
+  "version": "1.0.0",
+  "description": "Khushi Pathological Lab management system",
+  "scripts": {
+    "build": "cd backend && npm install",
+    "start": "node backend/server.js",
+    "migrate": "cd backend && npx knex migrate:latest",
+    "seed": "cd backend && npx knex seed:run"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
