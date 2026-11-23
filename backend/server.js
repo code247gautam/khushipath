@@ -134,18 +134,19 @@ app.use(
   })
 );
 
-// ── CSRF protection ───────────────────────────────────────────────────────────
-// Token is session-bound (not cookie-bound) — safer against subdomain attacks.
-// Every mutating request must include the token as "X-CSRF-Token" header.
+// ── Static frontend (served before CSRF — no token needed for HTML/CSS/JS) ───
+app.use(express.static(path.join(__dirname, "../frontend")));
+
+// ── Static uploads (signatures, logos) ───────────────────────────────────────
+app.use("/uploads", express.static(path.join(__dirname, "../uploads"), { index: false }));
+
+// ── CSRF protection (API routes only) ────────────────────────────────────────
 const csrfProtection = csrf({ cookie: false });
-app.use(csrfProtection);
+app.use("/api", csrfProtection);
 
 app.get("/api/csrf-token", (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
-
-// ── Static frontend ───────────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, "../frontend")));
 
 // ── API routes ────────────────────────────────────────────────────────────────
 app.use("/api/auth",      authRoutes);
@@ -164,10 +165,6 @@ app.use("/api/retention", retentionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/billing",   billingRoutes);
-
-// ── Static uploads (signatures, logos) ───────────────────────────────────────
-// Served under /uploads — no directory listing.
-app.use("/uploads", express.static(path.join(__dirname, "../uploads"), { index: false }));
 
 // ── 404 for unknown API routes ────────────────────────────────────────────────
 app.use("/api", (_req, res) => res.status(404).json({ error: "API route not found." }));
