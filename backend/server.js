@@ -46,6 +46,9 @@ const billingRoutes   = require("./routes/billingRoutes");
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+// Root of the whole repo (one level up from backend/)
+const ROOT = path.resolve(__dirname, "..");
+
 // ── Trust one proxy layer (nginx / traefik) ───────────────────────────────────
 // Required so req.ip reflects the real client IP, not the proxy.
 // Set to 0 (false) if running directly with no proxy.
@@ -108,8 +111,8 @@ const globalApiLimiter = rateLimit({
 app.use("/api", globalApiLimiter);
 
 // ── Static frontend & uploads (before session/CSRF — no auth needed) ─────────
-app.use(express.static(path.join(__dirname, "../frontend")));
-app.use("/uploads", express.static(path.join(__dirname, "../uploads"), { index: false }));
+app.use(express.static(path.join(ROOT, "frontend")));
+app.use("/uploads", express.static(path.join(ROOT, "uploads"), { index: false }));
 
 // ── Body parsers ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: "2mb" }));
@@ -174,7 +177,7 @@ app.use("/api", (_req, res) => res.status(404).json({ error: "API route not foun
 
 // ── SPA fallback ──────────────────────────────────────────────────────────────
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(path.join(ROOT, "frontend", "index.html"));
 });
 
 // ── Global error handler ──────────────────────────────────────────────────────
@@ -211,6 +214,8 @@ app.listen(PORT, () => {
   console.log(`\n[PathLab] running on http://localhost:${PORT}`);
   console.log(`    NODE_ENV : ${process.env.NODE_ENV || "development"}`);
   console.log(`    DB       : ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);
+  console.log(`    ROOT     : ${ROOT}`);
+  console.log(`    FRONTEND : ${path.join(ROOT, "frontend")}`);
   if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === "dev_secret_CHANGE_ME_NOW") {
     console.warn("\n[WARNING] SESSION_SECRET is not set or is the default value.");
     console.warn("   Set a strong secret in .env before going to production.\n");
