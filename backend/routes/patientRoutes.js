@@ -110,10 +110,10 @@ router.post(
 
     // Branch: use user's own branch, or body-supplied branch_id for admin,
     // or fall back to the first available branch (super-admin with no fixed branch)
-    let branch_id = req.branchFilter ?? Number(req.body.branch_id) || null;
+    let branch_id = req.branchFilter !== undefined ? req.branchFilter : (Number(req.body.branch_id) || null);
     if (!branch_id) {
       const firstBranch = await db("branches").orderBy("id").first();
-      branch_id = firstBranch?.id ?? null;
+      branch_id = firstBranch ? firstBranch.id : null;
     }
     if (!branch_id) return res.status(400).json({ error: "branch_id is required." });
 
