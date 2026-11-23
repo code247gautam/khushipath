@@ -75,7 +75,7 @@ app.use(
         styleSrc:    ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
         imgSrc:      ["'self'", "data:"],
         fontSrc:     ["'self'", "https://cdn.jsdelivr.net"],
-        connectSrc:  ["'self'"],
+        connectSrc:  ["'self'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
         frameSrc:    ["'none'"],
         objectSrc:   ["'none'"],
         upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null,
