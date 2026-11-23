@@ -149,10 +149,15 @@ app.use("/api",
 
 // ── CSRF protection (API routes only) ────────────────────────────────────────
 const csrfProtection = csrf({ cookie: false });
-app.use("/api", csrfProtection);
 
-app.get("/api/csrf-token", (req, res) => {
+// Apply CSRF to all API routes except the token endpoint itself
+app.get("/api/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
+});
+app.use("/api", (req, res, next) => {
+  // Skip CSRF for GET/HEAD/OPTIONS and for the csrf-token endpoint
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+  csrfProtection(req, res, next);
 });
 
 // ── API routes ────────────────────────────────────────────────────────────────
