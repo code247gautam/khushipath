@@ -122,12 +122,12 @@ router.put(
 
     const payload = {
       value:            String(value).trim(),
-      unit:             test?.unit || null,
+      unit:             test ? test.unit : null,
       flag,
       technician_notes: technician_notes || null,
-      entered_by:       req.session.userId,
+      entered_by:       req.session ? req.session.userId : null,
       entered_at:       db.fn.now(),
-      approval_status:  "pending",        // reset to pending on every edit
+      approval_status:  "pending",
     };
 
     let result;

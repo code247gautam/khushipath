@@ -141,7 +141,7 @@ app.use("/api",
     cookie: {
       httpOnly: true,
       secure:   process.env.COOKIE_SECURE === "true",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge:   Number(process.env.SESSION_MAX_AGE_MS) || 8 * 60 * 60 * 1000,
     },
   })
