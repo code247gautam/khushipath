@@ -86,8 +86,8 @@ router.post(
     }
 
     // Branch managers can only create users in their own branch
-    const targetBranch =
-      req.session.role === "admin" ? branch_id : req.branchFilter;
+    const sessionRole = req.session ? req.session.role : null;
+    const targetBranch = sessionRole === "admin" ? (Number(branch_id) || null) : req.branchFilter;
 
     if (!targetBranch) {
       return res.status(400).json({ error: "branch_id is required." });
@@ -104,7 +104,7 @@ router.post(
         role,
         phone,
       })
-      .returning("id, branch_id, full_name, email, role, phone, is_active");
+      .returning(["id", "branch_id", "full_name", "email", "role", "phone", "is_active"]);
 
     res.status(201).json(row);
   })
@@ -148,7 +148,7 @@ router.put(
         branch_id:  updatedBranch,
         updated_at: db.fn.now(),
       })
-      .returning("id, branch_id, full_name, email, role, phone, is_active");
+      .returning(["id", "branch_id", "full_name", "email", "role", "phone", "is_active"]);
 
     res.json(row);
   })

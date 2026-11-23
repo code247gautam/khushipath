@@ -71,7 +71,8 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc:  ["'self'"],
-        scriptSrc:   ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+        scriptSrc:      ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+        scriptSrcAttr:  ["'unsafe-inline'"],
         styleSrc:    ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
         imgSrc:      ["'self'", "data:"],
         fontSrc:     ["'self'", "https://cdn.jsdelivr.net"],

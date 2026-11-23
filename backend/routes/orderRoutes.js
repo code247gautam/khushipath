@@ -243,7 +243,7 @@ router.put(
     const [row] = await db("orders")
       .where({ id: order.id })
       .update({ sample_status: status, updated_at: db.fn.now() })
-      .returning("id, order_no, sample_status");
+      .returning(["id", "order_no", "sample_status"]);
 
     res.json(row);
   })
