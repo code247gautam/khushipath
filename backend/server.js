@@ -112,24 +112,29 @@ app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: false, limit: "2mb" }));
 
 // ── Session ───────────────────────────────────────────────────────────────────
+const sessionStore = new pgSession({
+  pool:                 pgPool,
+  tableName:            "sessions",
+  createTableIfMissing: true,
+  pruneSessionInterval: 60 * 60,
+});
+
+sessionStore.on("error", (err) => {
+  console.error("[session-store] error:", err.message);
+});
+
 app.use(
   session({
-    store: new pgSession({
-      pool:                 pgPool,
-      tableName:            "sessions",
-      createTableIfMissing: true,
-      // Prune expired sessions daily
-      pruneSessionInterval: 60 * 60, // seconds
-    }),
+    store: sessionStore,
     secret:            process.env.SESSION_SECRET || "dev_secret_CHANGE_ME_NOW",
     resave:            false,
     saveUninitialized: false,
-    name:              "pathlab.sid",   // non-default name hides framework fingerprint
+    name:              "pathlab.sid",
     cookie: {
       httpOnly: true,
       secure:   process.env.COOKIE_SECURE === "true",
       sameSite: "strict",
-      maxAge:   Number(process.env.SESSION_MAX_AGE_MS) || 8 * 60 * 60 * 1000, // 8 h
+      maxAge:   Number(process.env.SESSION_MAX_AGE_MS) || 8 * 60 * 60 * 1000,
     },
   })
 );
